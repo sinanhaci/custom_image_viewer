@@ -1,3 +1,4 @@
-## 0.0.1
+## [0.0.1] - 
 
-* TODO: Describe initial release.
+* You can view an image widget in full screen by wrapping it with CustomImageViewer.
+ 
