@@ -24,7 +24,8 @@ class CustomImageViewer<T> extends StatelessWidget {
     this.imageType = ImageType.networkLoading,
     this.customButton,
     this.openDuration = const Duration(milliseconds: 550),
-    this.closeDuration = const Duration(milliseconds: 550)
+    this.closeDuration = const Duration(milliseconds: 550),
+    this.runWithOutOpeningImageDetail,
   }) : super(key: key);
 
   final Widget child;
@@ -42,6 +43,7 @@ class CustomImageViewer<T> extends StatelessWidget {
   final int initialIndex;
   final Duration openDuration;
   final Duration closeDuration;
+  final Function? runWithOutOpeningImageDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +52,9 @@ class CustomImageViewer<T> extends StatelessWidget {
       tag: tag,
       child: GestureDetector(
         onTap: () {
+          if(runWithOutOpeningImageDetail != null){
+            runWithOutOpeningImageDetail();
+          }
           Navigator.push(
             context,
             PageRouteBuilder(
