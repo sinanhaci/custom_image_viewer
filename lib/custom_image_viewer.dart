@@ -53,7 +53,7 @@ class CustomImageViewer<T> extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           if(runWithOutOpeningImageDetail != null){
-            runWithOutOpeningImageDetail();
+            runWithOutOpeningImageDetail!();
           }
           Navigator.push(
             context,
