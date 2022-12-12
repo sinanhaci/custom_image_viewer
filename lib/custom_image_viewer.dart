@@ -1,13 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 library custom_image_viewer;
 
 import 'dart:math';
+
 import 'package:animations/animations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'inkwell_overlay.dart';
 import 'open_container_wrapper.dart';
-
 
 const _routeDuration = Duration(milliseconds: 300);
 
@@ -18,15 +19,15 @@ class CustomImageViewer<T> extends StatelessWidget {
     this.backgroundColor = Colors.black,
     this.disposeLevel,
     required this.images,
-    this.initialIndex = 0,
     this.boxFit = BoxFit.contain,
     this.buttonAlignment = Alignment.topRight,
     this.buttonPadding = const EdgeInsets.fromLTRB(0, 20, 20, 0),
-    this.pageIndicatorAlignment = Alignment.bottomCenter,
-    this.pageIndicatorPadding = const EdgeInsets.fromLTRB(0, 0, 0, 20),
-    this.pageIndicatorTextStyle = const TextStyle(color: Colors.white),
-    this.imageType = ImageType.networkLoading,
     this.customButton,
+    this.pageIndicatorAlignment = Alignment.bottomCenter,
+    this.pageIndicatorTextStyle = const TextStyle(color: Colors.white),
+    this.pageIndicatorPadding = const EdgeInsets.fromLTRB(0, 0, 0, 20),
+    this.imageType = ImageType.networkLoading,
+    this.initialIndex = 0,
     this.openDuration = const Duration(milliseconds: 550),
     this.closeDuration = const Duration(milliseconds: 550),
     this.runWithOutOpeningImageDetail,
@@ -36,7 +37,11 @@ class CustomImageViewer<T> extends StatelessWidget {
     this.openColor = Colors.transparent,
     this.transitionDuration = const Duration(milliseconds: 350),
     this.clipBehavior = Clip.antiAlias,
-    this.onClosed
+    this.onClosed,
+    this.closedElevation,
+    this.openElevation,
+    this.openShape,
+    this.closedShape,
   }) : super(key: key);
 
   final Widget child;
@@ -62,11 +67,19 @@ class CustomImageViewer<T> extends StatelessWidget {
   final Duration? transitionDuration;
   final Clip? clipBehavior;
   final Function(T?)? onClosed;
+  final double? closedElevation;
+  final double? openElevation;
+  final ShapeBorder? openShape;
+  final ShapeBorder? closedShape;
 
   @override
   Widget build(BuildContext context) {
     final UniqueKey key = UniqueKey();
     return OpenContainerWrapper<T>(
+      closedElevation: closedElevation,
+      closedShape: closedShape,
+      openElevation: openElevation,
+      openShape: openShape,
       closedColor: closedColor,
       middleColor: middleColor,
       openColor: openColor,
