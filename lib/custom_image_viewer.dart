@@ -1,8 +1,12 @@
 library custom_image_viewer;
 
 import 'dart:math';
+import 'package:animations/animations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+import 'inkwell_overlay.dart';
+import 'open_container_wrapper.dart';
 
 
 const _routeDuration = Duration(milliseconds: 300);
@@ -26,6 +30,13 @@ class CustomImageViewer<T> extends StatelessWidget {
     this.openDuration = const Duration(milliseconds: 550),
     this.closeDuration = const Duration(milliseconds: 550),
     this.runWithOutOpeningImageDetail,
+    this.customImageViewer,
+    this.closedColor = Colors.transparent,
+    this.middleColor = Colors.transparent,
+    this.openColor = Colors.transparent,
+    this.transitionDuration = const Duration(milliseconds: 350),
+    this.clipBehavior = Clip.antiAlias,
+    this.onClosed
   }) : super(key: key);
 
   final Widget child;
@@ -44,45 +55,46 @@ class CustomImageViewer<T> extends StatelessWidget {
   final Duration openDuration;
   final Duration closeDuration;
   final Function? runWithOutOpeningImageDetail;
+  final Widget? customImageViewer;
+  final Color? closedColor;
+  final Color? middleColor;
+  final Color? openColor;
+  final Duration? transitionDuration;
+  final Clip? clipBehavior;
+  final Function(T?)? onClosed;
 
   @override
   Widget build(BuildContext context) {
-    final UniqueKey tag = UniqueKey();
-    return Hero(
-      tag: tag,
-      child: GestureDetector(
-        onTap: () {
-          if(runWithOutOpeningImageDetail != null){
-            runWithOutOpeningImageDetail!();
-          }
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              opaque: false,
-              barrierColor: backgroundColor,
-              transitionDuration: openDuration,
-              reverseTransitionDuration: closeDuration,
-              pageBuilder: (BuildContext context, _, __) {
-                return CustomFullScreenImageViewer(
-                  tag: tag,
-                  backgroundColor: backgroundColor,
-                  disposeLevel: disposeLevel,
-                  images: images,
-                  boxFit: boxFit,
-                  buttonAlignment: buttonAlignment,
-                  buttonPadding: buttonPadding,
-                  customButton: customButton,
-                  imageType: imageType,
-                  initialIndex: initialIndex,
-                  pageIndicatorAlignment: pageIndicatorAlignment,
-                  pageIndicatorPadding: pageIndicatorPadding,
-                  pageIndicatorTextStyle: pageIndicatorTextStyle,
-                );
-              },
-            ),
-          );
-        },
-        child: child,
+    final UniqueKey key = UniqueKey();
+    return OpenContainerWrapper<T>(
+      closedColor: closedColor,
+      middleColor: middleColor,
+      openColor: openColor,
+      clipBehavior: clipBehavior,
+      transitionDuration: transitionDuration,
+      transitionType: ContainerTransitionType.fade,
+      closedBuilder: (BuildContext _, VoidCallback openContainer) {
+        return InkWellOverlay(
+          openContainer: openContainer,
+          child: child,
+        );
+      },
+      onClosed: onClosed ?? (value) {},
+      child: FullScreenView(
+        customImageViewer: customImageViewer,
+        uniqueKey: key,
+        backgroundColor: backgroundColor,
+        disposeLevel: disposeLevel,
+        images: images,
+        boxFit: boxFit,
+        buttonAlignment: buttonAlignment,
+        buttonPadding: buttonPadding,
+        customButton: customButton,
+        imageType: imageType,
+        initialIndex: initialIndex,
+        pageIndicatorAlignment: pageIndicatorAlignment,
+        pageIndicatorPadding: pageIndicatorPadding,
+        pageIndicatorTextStyle: pageIndicatorTextStyle,
       ),
     );
   }
@@ -90,14 +102,14 @@ class CustomImageViewer<T> extends StatelessWidget {
 
 enum DisposeLevel { high, medium, low }
 
-enum ImageType { network, networkLoading, asset, memory, file }
+enum ImageType { network, networkLoading, asset, memory, file , custom}
 
 enum ScaleLevel { off, x2, x3 }
 
-class CustomFullScreenImageViewer<T> extends StatefulWidget {
-  const CustomFullScreenImageViewer({
+class FullScreenView<T> extends StatefulWidget {
+  const FullScreenView({
     Key? key,
-    required this.tag,
+    required this.uniqueKey,
     required this.backgroundColor,
     required this.disposeLevel,
     required this.imageType,
@@ -110,13 +122,14 @@ class CustomFullScreenImageViewer<T> extends StatefulWidget {
     required this.pageIndicatorPadding ,
     required this.pageIndicatorTextStyle,
     this.customButton,
+    this.customImageViewer
   }) : super(key: key);
 
   final List<T> images;
   final int initialIndex;
   final Color backgroundColor;
   final DisposeLevel? disposeLevel;
-  final UniqueKey tag;
+  final UniqueKey uniqueKey;
   final ImageType imageType;
   final BoxFit boxFit;
   final Alignment buttonAlignment;
@@ -125,14 +138,15 @@ class CustomFullScreenImageViewer<T> extends StatefulWidget {
   final Alignment pageIndicatorAlignment;
   final TextStyle pageIndicatorTextStyle;
   final EdgeInsets pageIndicatorPadding;
+  final Widget? customImageViewer;
 
   @override
-  State<CustomFullScreenImageViewer> createState() => _CustomFullScreenImageViewerState();
+  State<FullScreenView> createState() => _FullScreenViewState();
 }
 
 
 
-class _CustomFullScreenImageViewerState extends State<CustomFullScreenImageViewer> {
+class _FullScreenViewState extends State<FullScreenView> {
   double? _initialPositionY = 0;
   double? _currentPositionY = 0;
   double _positionYDelta = 0;
@@ -168,7 +182,7 @@ class _CustomFullScreenImageViewerState extends State<CustomFullScreenImageViewe
   Widget build(BuildContext context) {
     final horizontalPosition = 0 + max(_positionYDelta, -_positionYDelta) / 15;
     return Hero(
-      tag: widget.tag,
+      tag: widget.uniqueKey,
       child: Scaffold(
           backgroundColor: widget.backgroundColor,
           body: Stack(
@@ -276,7 +290,7 @@ class _CustomFullScreenImageViewerState extends State<CustomFullScreenImageViewe
         );
   }
 
-  Image _getViewWidgetByImageType(var image) {
+  Widget _getViewWidgetByImageType(var image) {
     switch (widget.imageType) {
       case ImageType.networkLoading:
         return Image.network(
@@ -317,6 +331,8 @@ class _CustomFullScreenImageViewerState extends State<CustomFullScreenImageViewe
           image,
           fit: widget.boxFit,
         );
+      case ImageType.custom:
+        return widget.customImageViewer!;
     }
   }
 
